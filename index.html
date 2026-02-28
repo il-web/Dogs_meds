@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>כדור לכלב</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --card-hover: #22223a;
+            --accent: #e94560;
+            --accent-glow: rgba(233, 69, 96, 0.3);
+            --accent-soft: rgba(233, 69, 96, 0.1);
+            --green: #2ecc71;
+            --green-glow: rgba(46, 204, 113, 0.3);
+            --green-soft: rgba(46, 204, 113, 0.1);
+            --yellow: #f1c40f;
+            --text: #eee;
+            --text-dim: #888;
+            --text-dimmer: #555;
+            --radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(233, 69, 96, 0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(46, 204, 113, 0.04) 0%, transparent 50%);
+            z-index: -1;
+            animation: bgShift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-5%, -5%); }
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px 16px 100px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 24px 0 20px;
+        }
+
+        .header .emoji {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #ff6b81);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* Status Card */
+        .status-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: var(--radius) var(--radius) 0 0;
+            transition: background 0.3s;
+        }
+
+        .status-card.given::before {
+            background: linear-gradient(90deg, var(--green), #27ae60);
+        }
+
+        .status-card.not-given::before {
+            background: linear-gradient(90deg, var(--accent), #ff6b81);
+        }
+
+        .status-label {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .status-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .status-text.given {
+            color: var(--green);
+        }
+
+        .status-text.not-given {
+            color: var(--accent);
+        }
+
+        .status-detail {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+
+        /* Name Selection */
+        .name-section {
+            margin-bottom: 16px;
+        }
+
+        .name-section label {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .name-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .name-chip {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: var(--card);
+            color: var(--text);
+            font-family: 'Rubik', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .name-chip:hover {
+            border-color: rgba(255,255,255,0.2);
+            background: var(--card-hover);
+        }
+
+        .name-chip.selected {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .name-chip.add-btn {
+            border-style: dashed;
+            color: var(--text-dim);
+        }
+
+        /* Add name modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 90%;
+            max-width: 340px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Rubik', sans-serif;
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        .modal input:focus {
+            border-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Rubik', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-buttons .cancel-btn {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-dim);
+        }
+
+        .modal-buttons .confirm-btn {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Give Pill Button */
+        .give-btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--radius);
+            border: none;
+            font-family: 'Rubik', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .give-btn.active {
+            background: linear-gradient(135deg, var(--accent), #ff6b81);
+            color: white;
+            box-shadow: 0 4px 24px var(--accent-glow);
+        }
+
+        .give-btn.active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 32px var(--accent-glow);
+        }
+
+        .give-btn.active:active {
+            transform: scale(0.98);
+        }
+
+        .give-btn.disabled {
+            background: var(--card);
+            color: var(--text-dimmer);
+            cursor: not-allowed;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .give-btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* Undo bar */
+        .undo-bar {
+            display: none;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease;
+        }
+
+        .undo-bar.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .undo-bar span {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .undo-btn {
+            padding: 6px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-family: 'Rubik', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Log Section */
+        .log-section h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-dim);
+        }
+
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.03);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .log-item .who {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .log-item .when {
+            font-size: 13px;
+            color: var(--text-dim);
+            direction: ltr;
+            text-align: left;
+        }
+
+        .log-item .date-label {
+            font-size: 11px;
+            color: var(--text-dimmer);
+        }
+
+        .log-empty {
+            text-align: center;
+            color: var(--text-dimmer);
+            font-size: 14px;
+            padding: 32px 0;
+        }
+
+        .log-day-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dimmer);
+            padding: 8px 0 4px;
+            margin-top: 8px;
+        }
+
+        .log-day-header:first-child {
+            margin-top: 0;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        /* Success animation */
+        .success-flash {
+            position: fixed;
+            inset: 0;
+            background: var(--green-soft);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .success-flash.show {
+            opacity: 1;
+        }
+
+        /* Settings gear */
+        .settings-btn {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-dim);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Refresh */
+        .refresh-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-dim);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .refresh-btn.spinning svg {
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* ESP32 badge */
+        .esp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(241, 196, 15, 0.1);
+            color: var(--yellow);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-flash" id="successFlash"></div>
+
+    <div class="container">
+        <div class="header">
+            <span class="emoji">🐕💊</span>
+            <h1>מעקב כדורים</h1>
+            <p class="subtitle">מי נתן? מתי? הכל מסודר.</p>
+        </div>
+
+        <div id="loadingView" class="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">טוען...</div>
+        </div>
+
+        <div id="mainView" style="display:none;">
+            <!-- Status -->
+            <div class="status-card" id="statusCard">
+                <div class="status-label">סטטוס היום</div>
+                <div class="status-text" id="statusText">טוען...</div>
+                <div class="status-detail" id="statusDetail"></div>
+            </div>
+
+            <!-- Name selection -->
+            <div class="name-section">
+                <label>מי נותן?</label>
+                <div class="name-chips" id="nameChips"></div>
+            </div>
+
+            <!-- Give button -->
+            <button class="give-btn disabled" id="giveBtn" disabled>בחר שם קודם</button>
+
+            <!-- Undo bar -->
+            <div class="undo-bar" id="undoBar">
+                <span>נרשם בהצלחה ✓</span>
+                <button class="undo-btn" id="undoBtn">ביטול</button>
+            </div>
+
+            <!-- Log -->
+            <div class="log-section">
+                <h2>📋 היסטוריה</h2>
+                <div class="log-list" id="logList">
+                    <div class="log-empty">אין רשומות עדיין</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add name modal -->
+    <div class="modal-overlay" id="addNameModal">
+        <div class="modal">
+            <h3>➕ הוספת שם</h3>
+            <input type="text" id="newNameInput" placeholder="הכנס שם..." maxlength="20">
+            <div class="modal-buttons">
+                <button class="cancel-btn" id="cancelAddName">ביטול</button>
+                <button class="confirm-btn" id="confirmAddName">הוסף</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" id="refreshBtn" title="רענן">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+    </button>
+
+    <script>
+        // === CONFIG ===
+        const SUPABASE_URL = 'https://sufelldngosrvtpxyqqo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1ZmVsbGRuZ29zcnZ0cHh5cXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTkxMTIsImV4cCI6MjA4Nzg3NTExMn0.Z4ab5FMx7P076TlGQtvnK5yUVge_igG5rzZje7vsJRk';
+
+        // === STATE ===
+        let selectedName = localStorage.getItem('selectedName') || '';
+        let names = JSON.parse(localStorage.getItem('familyNames') || '[]');
+        let logs = [];
+        let lastInsertedId = null;
+
+        // === SUPABASE HELPERS ===
+        async function supaFetch(path, options = {}) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': options.prefer || 'return=representation',
+                },
+                ...options,
+            });
+            if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+            const text = await res.text();
+            return text ? JSON.parse(text) : null;
+        }
+
+        // === LOAD LOGS ===
+        async function loadLogs() {
+            const data = await supaFetch('med_logs?order=given_at.desc&limit=50');
+            logs = data || [];
+            renderStatus();
+            renderLog();
+        }
+
+        // === GIVE PILL ===
+        async function givePill() {
+            if (!selectedName) return;
+            const btn = document.getElementById('giveBtn');
+            btn.disabled = true;
+            btn.textContent = '...שומר';
+
+            try {
+                const data = await supaFetch('med_logs', {
+                    method: 'POST',
+                    body: JSON.stringify({ given_by: selectedName }),
+                });
+                lastInsertedId = data[0]?.id;
+
+                // Success flash
+                const flash = document.getElementById('successFlash');
+                flash.classList.add('show');
+                setTimeout(() => flash.classList.remove('show'), 400);
+
+                // Show undo
+                const undoBar = document.getElementById('undoBar');
+                undoBar.classList.add('show');
+                setTimeout(() => undoBar.classList.remove('show'), 10000);
+
+                await loadLogs();
+            } catch (e) {
+                alert('שגיאה בשמירה, נסה שוב');
+                console.error(e);
+            }
+
+            updateGiveButton();
+        }
+
+        // === UNDO ===
+        async function undoLast() {
+            if (!lastInsertedId) return;
+            try {
+                await supaFetch(`med_logs?id=eq.${lastInsertedId}`, {
+                    method: 'DELETE',
+                    prefer: 'return=minimal',
+                });
+                lastInsertedId = null;
+                document.getElementById('undoBar').classList.remove('show');
+                await loadLogs();
+            } catch (e) {
+                alert('שגיאה בביטול');
+            }
+        }
+
+        // === RENDER STATUS ===
+        function renderStatus() {
+            const card = document.getElementById('statusCard');
+            const text = document.getElementById('statusText');
+            const detail = document.getElementById('statusDetail');
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const todayLogs = logs.filter(l => {
+                const d = new Date(l.given_at);
+                d.setHours(0, 0, 0, 0);
+                return d.getTime() === today.getTime();
+            });
+
+            if (todayLogs.length > 0) {
+                const last = todayLogs[0];
+                const time = new Date(last.given_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+                card.className = 'status-card given';
+                text.className = 'status-text given';
+                text.textContent = `✓ ניתן היום (${todayLogs.length})`;
+                detail.textContent = `${last.given_by} נתן/ה בשעה ${time}`;
+
+                if (todayLogs.some(l => l.given_by === 'ESP32')) {
+                    detail.innerHTML += ' <span class="esp-badge">⚡ ESP32</span>';
+                }
+            } else {
+                card.className = 'status-card not-given';
+                text.className = 'status-text not-given';
+                text.textContent = '✗ עדיין לא ניתן היום';
+                detail.textContent = '';
+            }
+        }
+
+        // === RENDER LOG ===
+        function renderLog() {
+            const list = document.getElementById('logList');
+
+            if (logs.length === 0) {
+                list.innerHTML = '<div class="log-empty">אין רשומות עדיין</div>';
+                return;
+            }
+
+            let html = '';
+            let currentDay = '';
+
+            logs.forEach(log => {
+                const date = new Date(log.given_at);
+                const dayStr = date.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+                const time = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+                if (dayStr !== currentDay) {
+                    currentDay = dayStr;
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const logDate = new Date(date);
+                    logDate.setHours(0, 0, 0, 0);
+                    const diff = Math.floor((today - logDate) / 86400000);
+                    let label = dayStr;
+                    if (diff === 0) label = '📅 היום — ' + dayStr;
+                    else if (diff === 1) label = '📅 אתמול — ' + dayStr;
+
+                    html += `<div class="log-day-header">${label}</div>`;
+                }
+
+                const espBadge = log.given_by === 'ESP32' ? ' <span class="esp-badge">⚡ ESP32</span>' : '';
+                html += `
+                    <div class="log-item">
+                        <div>
+                            <div class="who">${log.given_by}${espBadge}</div>
+                        </div>
+                        <div class="when">${time}</div>
+                    </div>`;
+            });
+
+            list.innerHTML = html;
+        }
+
+        // === NAME CHIPS ===
+        function renderNames() {
+            const container = document.getElementById('nameChips');
+            let html = '';
+
+            names.forEach(name => {
+                const sel = name === selectedName ? 'selected' : '';
+                html += `<button class="name-chip ${sel}" onclick="selectName('${name}')">${name}</button>`;
+            });
+
+            html += `<button class="name-chip add-btn" onclick="showAddName()">+ הוסף</button>`;
+            container.innerHTML = html;
+        }
+
+        function selectName(name) {
+            selectedName = name;
+            localStorage.setItem('selectedName', name);
+            renderNames();
+            updateGiveButton();
+        }
+
+        function updateGiveButton() {
+            const btn = document.getElementById('giveBtn');
+            if (selectedName) {
+                btn.disabled = false;
+                btn.className = 'give-btn active';
+                btn.textContent = `💊 ${selectedName} נתן/ה כדור`;
+            } else {
+                btn.disabled = true;
+                btn.className = 'give-btn disabled';
+                btn.textContent = 'בחר שם קודם';
+            }
+        }
+
+        // === ADD NAME MODAL ===
+        function showAddName() {
+            document.getElementById('addNameModal').classList.add('show');
+            document.getElementById('newNameInput').value = '';
+            setTimeout(() => document.getElementById('newNameInput').focus(), 100);
+        }
+
+        function hideAddName() {
+            document.getElementById('addNameModal').classList.remove('show');
+        }
+
+        function confirmAddName() {
+            const input = document.getElementById('newNameInput');
+            const name = input.value.trim();
+            if (!name) return;
+            if (!names.includes(name)) {
+                names.push(name);
+                localStorage.setItem('familyNames', JSON.stringify(names));
+            }
+            selectedName = name;
+            localStorage.setItem('selectedName', name);
+            hideAddName();
+            renderNames();
+            updateGiveButton();
+        }
+
+        // === EVENTS ===
+        document.getElementById('giveBtn').addEventListener('click', (e) => {
+            // Ripple effect
+            const btn = e.currentTarget;
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            const rect = btn.getBoundingClientRect();
+            ripple.style.left = (e.clientX - rect.left) + 'px';
+            ripple.style.top = (e.clientY - rect.top) + 'px';
+            ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
+            btn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+
+            givePill();
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', undoLast);
+        document.getElementById('cancelAddName').addEventListener('click', hideAddName);
+        document.getElementById('confirmAddName').addEventListener('click', confirmAddName);
+        document.getElementById('newNameInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') confirmAddName();
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('refreshBtn');
+            btn.classList.add('spinning');
+            await loadLogs();
+            setTimeout(() => btn.classList.remove('spinning'), 500);
+        });
+
+        // Close modal on overlay click
+        document.getElementById('addNameModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) hideAddName();
+        });
+
+        // === INIT ===
+        async function init() {
+            try {
+                await loadLogs();
+                renderNames();
+                updateGiveButton();
+                document.getElementById('loadingView').style.display = 'none';
+                document.getElementById('mainView').style.display = 'block';
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loadingView').innerHTML = `
+                    <div style="color: var(--accent); font-size: 14px;">
+                        שגיאה בחיבור לשרת<br>
+                        <button onclick="location.reload()" style="margin-top:12px;padding:8px 24px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:'Rubik';cursor:pointer;">נסה שוב</button>
+                    </div>`;
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadLogs, 30000);
+
+        init();
+    </script>
+</body>
+</html>
