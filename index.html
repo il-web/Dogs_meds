@@ -667,37 +667,51 @@
             const today = new Date(now); today.setHours(0,0,0,0);
             const todayLogs = logs.filter(l => new Date(l.given_at) >= today);
 
-            // Assign each log to its closest dose
+            // Build dose times
+            const doseTimes = DOSES.map((d) => {
+                const dt = new Date(today);
+                dt.setHours(d.hour, d.minute, 0, 0);
+                return dt.getTime();
+            });
+
+            // Each dose owns from its own time (minus early window) until the next dose time
+            // First dose owns from start of day
             const usedLogs = new Array(DOSES.length).fill(null);
-            
-            todayLogs.forEach(log => {
-                const logTime = new Date(log.given_at);
-                let closestIdx = 0;
-                let closestDiff = Infinity;
-                
-                DOSES.forEach((d, i) => {
-                    const dt = new Date(today);
-                    dt.setHours(d.hour, d.minute, 0, 0);
-                    const diff = Math.abs(logTime - dt);
-                    if (diff < closestDiff) {
-                        closestDiff = diff;
-                        closestIdx = i;
+
+            // Sort logs oldest first so earliest log claims the dose
+            const sortedLogs = [...todayLogs].sort((a, b) => new Date(a.given_at) - new Date(b.given_at));
+
+            sortedLogs.forEach(log => {
+                const logTime = new Date(log.given_at).getTime();
+
+                for (let i = 0; i < DOSES.length; i++) {
+                    if (usedLogs[i]) continue; // already claimed
+
+                    const start = i === 0 ? today.getTime() : doseTimes[i] - EARLY_MIN * 60000;
+                    const end = i === DOSES.length - 1 ? today.getTime() + 86400000 : doseTimes[i + 1] - EARLY_MIN * 60000;
+
+                    if (logTime >= start && logTime < end) {
+                        usedLogs[i] = log;
+                        break;
                     }
-                });
-                
-                // Only assign if not already taken (first match wins since logs are desc)
-                if (!usedLogs[closestIdx]) {
-                    usedLogs[closestIdx] = log;
+                }
+
+                // If no window matched, assign to the most recent past dose that has no log
+                if (!usedLogs.some((l, i) => l === log)) {
+                    for (let i = DOSES.length - 1; i >= 0; i--) {
+                        if (!usedLogs[i] && new Date(log.given_at).getTime() >= doseTimes[i] - EARLY_MIN * 60000) {
+                            usedLogs[i] = log;
+                            break;
+                        }
+                    }
                 }
             });
 
             return DOSES.map((d, i) => {
                 const dt = new Date(today); dt.setHours(d.hour, d.minute, 0, 0);
                 const earlyT = new Date(dt.getTime() - EARLY_MIN * 60000);
-
-                const prev = i > 0 ? new Date(today).setHours(DOSES[i-1].hour, DOSES[i-1].minute) : today.getTime();
-                const next = i < DOSES.length-1 ? new Date(today).setHours(DOSES[i+1].hour, DOSES[i+1].minute) : today.getTime() + 86400000;
-                const wEnd = new Date((dt.getTime() + next) / 2);
+                const nextDoseTime = i < DOSES.length - 1 ? doseTimes[i + 1] : today.getTime() + 86400000;
+                const wEnd = new Date(nextDoseTime - EARLY_MIN * 60000);
 
                 const match = usedLogs[i];
 
