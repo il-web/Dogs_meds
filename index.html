@@ -667,16 +667,39 @@
             const today = new Date(now); today.setHours(0,0,0,0);
             const todayLogs = logs.filter(l => new Date(l.given_at) >= today);
 
+            // Assign each log to its closest dose
+            const usedLogs = new Array(DOSES.length).fill(null);
+            
+            todayLogs.forEach(log => {
+                const logTime = new Date(log.given_at);
+                let closestIdx = 0;
+                let closestDiff = Infinity;
+                
+                DOSES.forEach((d, i) => {
+                    const dt = new Date(today);
+                    dt.setHours(d.hour, d.minute, 0, 0);
+                    const diff = Math.abs(logTime - dt);
+                    if (diff < closestDiff) {
+                        closestDiff = diff;
+                        closestIdx = i;
+                    }
+                });
+                
+                // Only assign if not already taken (first match wins since logs are desc)
+                if (!usedLogs[closestIdx]) {
+                    usedLogs[closestIdx] = log;
+                }
+            });
+
             return DOSES.map((d, i) => {
                 const dt = new Date(today); dt.setHours(d.hour, d.minute, 0, 0);
                 const earlyT = new Date(dt.getTime() - EARLY_MIN * 60000);
 
                 const prev = i > 0 ? new Date(today).setHours(DOSES[i-1].hour, DOSES[i-1].minute) : today.getTime();
                 const next = i < DOSES.length-1 ? new Date(today).setHours(DOSES[i+1].hour, DOSES[i+1].minute) : today.getTime() + 86400000;
-                const wStart = new Date((prev + dt.getTime()) / 2);
                 const wEnd = new Date((dt.getTime() + next) / 2);
 
-                const match = todayLogs.find(l => { const x = new Date(l.given_at); return x >= wStart && x < wEnd; });
+                const match = usedLogs[i];
 
                 let status;
                 if (match) status = 'given';
