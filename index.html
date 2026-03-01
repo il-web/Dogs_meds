@@ -691,12 +691,24 @@
 
         function getCurrentDose() {
             const doses = getDoses();
-            // Priority: active > early > missed > upcoming (first)
-            return doses.find(d => d.status === 'active')
-                || doses.find(d => d.status === 'early')
-                || doses.find(d => d.status === 'missed')
-                || doses.find(d => d.status === 'upcoming')
-                || doses[doses.length - 1]; // fallback: last dose
+            // Priority: active > early > missed > upcoming
+            const active = doses.find(d => d.status === 'active');
+            if (active) return active;
+
+            const early = doses.find(d => d.status === 'early');
+            if (early) return early;
+
+            const missed = doses.find(d => d.status === 'missed');
+            if (missed) return missed;
+
+            const upcoming = doses.find(d => d.status === 'upcoming');
+            if (upcoming) return upcoming;
+
+            // All doses are given — show the last one that was given
+            const lastGiven = [...doses].reverse().find(d => d.status === 'given');
+            if (lastGiven) return lastGiven;
+
+            return doses[doses.length - 1];
         }
 
         function getNextDose(doses) {
