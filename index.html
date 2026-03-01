@@ -5,44 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DogMeds</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0a0f">
+    <meta name="theme-color" content="#0b0b12">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Secular+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0f;
-            --surface: #14141f;
-            --surface2: #1c1c2e;
-            --surface3: #252540;
+            --bg: #0b0b12;
+            --surface: #151520;
+            --surface2: #1e1e30;
             --border: rgba(255,255,255,0.06);
-            --border-light: rgba(255,255,255,0.1);
             --green: #00d68f;
             --green-dim: #00b377;
-            --green-bg: rgba(0, 214, 143, 0.08);
-            --green-bg2: rgba(0, 214, 143, 0.15);
-            --green-glow: rgba(0, 214, 143, 0.4);
-            --red: #ff4757;
-            --red-bg: rgba(255, 71, 87, 0.08);
-            --red-bg2: rgba(255, 71, 87, 0.15);
-            --orange: #ffa502;
-            --orange-bg: rgba(255, 165, 2, 0.08);
-            --orange-bg2: rgba(255, 165, 2, 0.15);
+            --green-glow: rgba(0,214,143,0.25);
+            --green-bg: rgba(0,214,143,0.08);
             --blue: #3b82f6;
-            --blue-bg: rgba(59, 130, 246, 0.08);
+            --blue-glow: rgba(59,130,246,0.25);
+            --orange: #ffa502;
+            --red: #ff4757;
             --text: #f0f0f5;
-            --text2: #a0a0b8;
-            --text3: #606078;
-            --text4: #404055;
-            --radius: 20px;
-            --radius-sm: 14px;
-            --radius-xs: 10px;
+            --text2: #8888a0;
+            --text3: #50506a;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
         body {
             font-family: 'Heebo', sans-serif;
@@ -57,356 +46,512 @@
             max-width: 430px;
             margin: 0 auto;
             min-height: 100dvh;
-            padding-top: var(--safe-top);
-        }
-
-        /* TOP BAR */
-        .topbar {
-            padding: 16px 20px 12px;
             display: flex;
+            flex-direction: column;
+            padding: calc(24px + var(--safe-top)) 20px calc(24px + var(--safe-bottom));
+        }
+
+        /* === SCREENS === */
+        .screen { display: none; flex-direction: column; flex: 1; }
+        .screen.active { display: flex; }
+
+        /* === WELCOME SCREEN === */
+        .welcome {
             align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background: rgba(10,10,15,0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+            justify-content: center;
+            gap: 32px;
+            text-align: center;
         }
 
-        .topbar-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .welcome-emoji { font-size: 72px; animation: welcomeBounce 2s ease-in-out infinite; }
+
+        @keyframes welcomeBounce {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
-        .topbar-title .dog-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, var(--green), #00b377);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
+        .welcome h1 {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.3;
         }
 
-        .topbar-title h1 {
-            font-family: 'Secular One', sans-serif;
-            font-size: 20px; font-weight: 400;
-        }
-
-        .icon-btn {
-            width: 38px; height: 38px;
-            border-radius: 12px;
-            border: 1px solid var(--border-light);
-            background: var(--surface);
+        .welcome p {
+            font-size: 15px;
             color: var(--text2);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 18px;
+            line-height: 1.6;
+            max-width: 280px;
+        }
+
+        .welcome-input-wrap {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .welcome-input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'Heebo', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .welcome-input:focus { border-color: var(--green); }
+
+        .welcome-input::placeholder { color: var(--text3); }
+
+        .welcome-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: var(--green);
+            color: #fff;
+            font-family: 'Heebo', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .icon-btn:active { transform: scale(0.92); background: var(--surface2); }
+        .welcome-btn:active { transform: scale(0.97); }
+        .welcome-btn:disabled { background: var(--surface2); color: var(--text3); cursor: not-allowed; }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* CONTENT */
-        .content {
-            padding: 16px 16px calc(20px + var(--safe-bottom));
-            display: flex; flex-direction: column; gap: 16px;
+        /* === MAIN SCREEN === */
+        .main {
+            gap: 0;
         }
 
-        /* SECTION LABEL */
-        .section-label {
-            font-size: 13px; font-weight: 600; color: var(--text3);
-            text-transform: uppercase; letter-spacing: 1px;
+        /* Greeting */
+        .greeting {
+            margin-bottom: 8px;
         }
 
-        /* NAME BAR */
-        .name-bar {
-            display: flex; gap: 8px; overflow-x: auto;
-            padding: 2px 0; scrollbar-width: none;
+        .greeting h2 {
+            font-size: 22px;
+            font-weight: 700;
         }
-        .name-bar::-webkit-scrollbar { display: none; }
 
-        .name-pill {
-            flex-shrink: 0;
-            padding: 10px 20px; border-radius: 50px;
-            border: 2px solid var(--border-light);
-            background: var(--surface); color: var(--text2);
-            font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        .greeting h2 span {
+            color: var(--green);
         }
-        .name-pill:active { transform: scale(0.95); }
-        .name-pill.selected {
-            border-color: var(--green); background: var(--green-bg2); color: var(--green);
-        }
-        .name-pill.add { border-style: dashed; border-color: var(--text4); color: var(--text3); }
 
-        /* DOSE CARD */
-        .dose-card {
+        .greeting .time-now {
+            font-size: 13px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        /* === BIG BUTTON AREA === */
+        .hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        /* Status text above button */
+        .hero-status {
+            font-size: 14px;
+            color: var(--text2);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .hero-status .next-time {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .hero-status .dose-label {
+            color: var(--text3);
+            font-size: 12px;
+        }
+
+        /* The big button */
+        .big-btn-wrap {
+            position: relative;
+        }
+
+        .big-btn-ring {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: all 0.5s;
+        }
+
+        .big-btn-ring.pulse {
+            border-color: var(--green);
+            animation: ringPulse 2.5s ease-in-out infinite;
+        }
+
+        .big-btn-ring.pulse-blue {
+            border-color: var(--blue);
+            animation: ringPulseBlue 2.5s ease-in-out infinite;
+        }
+
+        @keyframes ringPulse {
+            0%,100% { box-shadow: 0 0 0 0 var(--green-glow); }
+            50% { box-shadow: 0 0 0 16px transparent; }
+        }
+
+        @keyframes ringPulseBlue {
+            0%,100% { box-shadow: 0 0 0 0 var(--blue-glow); }
+            50% { box-shadow: 0 0 0 16px transparent; }
+        }
+
+        .big-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: 'Heebo', sans-serif;
+            transition: all 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .big-btn:active { transform: scale(0.95); }
+
+        .big-btn .btn-emoji { font-size: 36px; }
+        .big-btn .btn-text { font-size: 15px; font-weight: 700; line-height: 1.3; text-align: center; padding: 0 12px; }
+
+        /* Button states */
+        .big-btn.give {
+            background: linear-gradient(145deg, #00e09a, #00b377);
+            color: #fff;
+            box-shadow: 0 8px 32px var(--green-glow);
+        }
+
+        .big-btn.early {
+            background: linear-gradient(145deg, #5b9cf6, #2563eb);
+            color: #fff;
+            box-shadow: 0 8px 32px var(--blue-glow);
+        }
+
+        .big-btn.done {
             background: var(--surface);
-            border-radius: var(--radius);
-            padding: 18px;
+            border: 2px solid rgba(0,214,143,0.2);
+            color: var(--green);
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .big-btn.done:active { transform: none; }
+
+        .big-btn.waiting {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            color: var(--text3);
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .big-btn.waiting:active { transform: none; }
+
+        /* Given info */
+        .given-info {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text2);
+            line-height: 1.5;
+        }
+
+        .given-info .by-name {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .given-info .esp-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(255,165,2,0.12);
+            color: var(--orange);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        /* Next dose info */
+        .next-dose-info {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text2);
+        }
+
+        .next-dose-info .next-val {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* === BOTTOM SECTION === */
+        .bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Today summary */
+        .today-bar {
+            display: flex;
+            gap: 6px;
+        }
+
+        .today-dot {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--surface2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .today-dot.given { background: var(--green); }
+        .today-dot.active { background: var(--orange); animation: dotPulse 1.5s ease-in-out infinite; }
+        .today-dot.missed { background: var(--red); }
+
+        @keyframes dotPulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+        .today-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 2px;
+        }
+
+        .today-label {
+            font-size: 11px;
+            color: var(--text3);
+            font-weight: 500;
+        }
+
+        .today-label.active { color: var(--orange); font-weight: 700; }
+        .today-label.given { color: var(--green); }
+        .today-label.missed { color: var(--red); }
+
+        /* History toggle */
+        .history-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px;
+            border-radius: 14px;
             border: 1px solid var(--border);
-            position: relative; overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .dose-card::before {
-            content: '';
-            position: absolute; top: 0; right: 0; bottom: 0; width: 4px;
-            border-radius: 0 var(--radius) var(--radius) 0;
-        }
-
-        .dose-card.given::before { background: var(--green); }
-        .dose-card.given { border-color: rgba(0,214,143,0.15); background: linear-gradient(135deg, var(--surface), var(--green-bg)); }
-
-        .dose-card.missed::before { background: var(--red); }
-        .dose-card.missed { border-color: rgba(255,71,87,0.15); background: linear-gradient(135deg, var(--surface), var(--red-bg)); }
-
-        .dose-card.upcoming::before { background: var(--surface3); }
-
-        .dose-card.active::before { background: var(--orange); animation: pulse-bar 2s ease-in-out infinite; }
-        .dose-card.active { border-color: rgba(255,165,2,0.2); background: linear-gradient(135deg, var(--surface), var(--orange-bg)); }
-
-        .dose-card.early::before { background: var(--blue); }
-        .dose-card.early { border-color: rgba(59,130,246,0.15); background: linear-gradient(135deg, var(--surface), var(--blue-bg)); }
-
-        @keyframes pulse-bar { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-
-        .dose-top {
-            display: flex; align-items: center; justify-content: space-between;
-        }
-
-        .dose-time-wrap { display: flex; align-items: center; gap: 10px; }
-
-        .dose-icon {
-            width: 40px; height: 40px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; flex-shrink: 0;
-        }
-
-        .dose-card.given .dose-icon { background: var(--green-bg2); }
-        .dose-card.missed .dose-icon { background: var(--red-bg2); }
-        .dose-card.upcoming .dose-icon { background: var(--surface3); }
-        .dose-card.active .dose-icon { background: var(--orange-bg2); }
-        .dose-card.early .dose-icon { background: rgba(59,130,246,0.15); }
-
-        .dose-time {
-            font-size: 22px; font-weight: 700; direction: ltr; text-align: left;
-        }
-
-        .dose-label { font-size: 12px; color: var(--text3); font-weight: 500; }
-        .dose-card.active .dose-label { color: var(--orange); font-weight: 600; }
-
-        .dose-badge {
-            padding: 5px 12px; border-radius: 50px;
-            font-size: 12px; font-weight: 600;
-        }
-
-        .badge-given { background: var(--green-bg2); color: var(--green); }
-        .badge-missed { background: var(--red-bg2); color: var(--red); }
-        .badge-upcoming { background: var(--surface3); color: var(--text3); }
-        .badge-active { background: var(--orange-bg2); color: var(--orange); animation: pulse-badge 2s ease-in-out infinite; }
-        .badge-early { background: rgba(59,130,246,0.15); color: var(--blue); }
-
-        @keyframes pulse-badge { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
-
-        .dose-info {
-            font-size: 13px; color: var(--text2);
-            margin-top: 10px;
-            display: flex; align-items: center; gap: 6px;
-        }
-
-        .esp-tag {
-            display: inline-flex; align-items: center; gap: 3px;
-            background: rgba(255,165,2,0.12); color: var(--orange);
-            font-size: 10px; font-weight: 700;
-            padding: 2px 7px; border-radius: 6px;
-        }
-
-        .dose-action { margin-top: 12px; }
-
-        .dose-give-btn {
-            width: 100%; padding: 14px; border-radius: var(--radius-sm);
-            border: none; font-family: 'Heebo', sans-serif;
-            font-size: 15px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .dose-give-btn:active { transform: scale(0.97); }
-
-        .dose-give-btn.primary {
-            background: linear-gradient(135deg, var(--green), var(--green-dim));
-            color: white; box-shadow: 0 4px 20px var(--green-glow);
-        }
-        .dose-give-btn.early-btn {
-            background: linear-gradient(135deg, var(--blue), #2563eb);
-            color: white; box-shadow: 0 4px 20px rgba(59,130,246,0.3);
-        }
-        .dose-give-btn.disabled {
-            background: var(--surface3); color: var(--text4);
-            cursor: not-allowed; box-shadow: none;
-        }
-
-        /* HISTORY */
-        .history-card {
-            background: var(--surface); border-radius: var(--radius);
-            border: 1px solid var(--border); overflow: hidden;
-        }
-
-        .history-header {
-            padding: 16px 18px;
-            display: flex; align-items: center; justify-content: space-between;
+            background: var(--surface);
+            color: var(--text2);
+            font-family: 'Heebo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
         }
 
-        .history-header h3 {
-            font-size: 15px; font-weight: 700;
-            display: flex; align-items: center; gap: 8px;
-        }
+        .history-btn:active { background: var(--surface2); }
 
-        .history-header .arrow {
-            color: var(--text3); transition: transform 0.3s; font-size: 12px;
-        }
-        .history-header .arrow.open { transform: rotate(180deg); }
-
-        .history-list { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-        .history-list.open { max-height: 1000px; }
-
-        .history-day {
-            padding: 10px 18px 4px; font-size: 12px; font-weight: 700;
-            color: var(--text3); letter-spacing: 0.5px;
-            border-top: 1px solid var(--border);
-        }
-        .history-day:first-child { border-top: none; }
-
-        .history-item {
-            padding: 12px 18px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-top: 1px solid var(--border);
-        }
-
-        .history-item .h-who { font-size: 14px; font-weight: 600; }
-        .history-item .h-when { font-size: 13px; color: var(--text2); direction: ltr; }
-
-        .history-empty {
-            padding: 24px; text-align: center; color: var(--text4); font-size: 13px;
-        }
-
-        /* NOTIFICATION BANNER */
-        .notif-banner {
+        /* History panel */
+        .history-panel {
             display: none;
-            background: linear-gradient(135deg, var(--surface2), var(--surface));
-            border-radius: var(--radius);
-            border: 1px solid var(--border-light);
-            padding: 16px; gap: 12px; flex-direction: column;
-        }
-        .notif-banner.show { display: flex; }
-
-        .notif-banner-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
-        .notif-banner-text strong { color: var(--text); }
-
-        .notif-allow-btn {
-            padding: 12px; border-radius: var(--radius-xs); border: none;
-            background: var(--green); color: white;
-            font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        /* MODALS */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.75); z-index: 100;
-            align-items: flex-end; justify-content: center;
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        }
-        .modal-overlay.show { display: flex; }
+        .history-panel.open { display: flex; }
 
-        .modal-sheet {
-            background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
-            width: 100%; max-width: 430px;
-            padding: 20px 20px calc(20px + var(--safe-bottom));
-            animation: slideUp 0.3s ease;
+        .history-panel::-webkit-scrollbar { display: none; }
+
+        .h-day {
+            padding: 10px 16px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            letter-spacing: 0.5px;
+            background: var(--surface);
         }
 
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .modal-handle {
-            width: 36px; height: 4px; background: var(--surface3);
-            border-radius: 2px; margin: 0 auto 16px;
+        .h-item {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
         }
 
-        .modal-sheet h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+        .h-item .h-who { font-size: 13px; font-weight: 600; }
+        .h-item .h-when { font-size: 12px; color: var(--text2); direction: ltr; }
 
-        .modal-input {
-            width: 100%; padding: 14px 16px; border-radius: var(--radius-sm);
-            border: 2px solid var(--border-light); background: var(--bg);
-            color: var(--text); font-family: 'Heebo', sans-serif;
-            font-size: 16px; outline: none; margin-bottom: 16px;
+        .h-empty { padding: 20px; text-align: center; color: var(--text3); font-size: 13px; }
+
+        /* === CONFIRM OVERLAY === */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
         }
-        .modal-input:focus { border-color: var(--green); }
 
-        .modal-btns { display: flex; gap: 10px; }
+        .confirm-overlay.show { display: flex; }
 
-        .modal-btns button {
-            flex: 1; padding: 14px; border-radius: var(--radius-sm); border: none;
-            font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer;
+        .confirm-box {
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 32px 24px 24px;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+            animation: confirmPop 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
         }
 
-        .modal-cancel { background: var(--surface3); color: var(--text2); }
-        .modal-confirm { background: var(--green); color: white; }
+        @keyframes confirmPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
 
-        .confirm-modal-content { text-align: center; }
-        .confirm-modal-content .confirm-emoji { font-size: 48px; margin-bottom: 12px; }
-        .confirm-modal-content p { font-size: 15px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
-        .confirm-modal-content .hl { color: var(--text); font-weight: 700; }
+        .confirm-box .c-emoji { font-size: 48px; margin-bottom: 12px; }
+        .confirm-box .c-text { font-size: 16px; color: var(--text2); margin-bottom: 24px; line-height: 1.5; }
+        .confirm-box .c-text strong { color: var(--text); }
 
-        /* TOAST */
+        .confirm-btns { display: flex; gap: 10px; }
+
+        .confirm-btns button {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-family: 'Heebo', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .c-cancel { background: var(--surface2); color: var(--text2); }
+        .c-ok { background: var(--green); color: #fff; }
+
+        /* === TOAST === */
         .toast {
-            position: fixed; top: calc(20px + var(--safe-top)); left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--surface2); border: 1px solid var(--green);
-            border-radius: var(--radius-sm); padding: 14px 24px;
+            position: fixed;
+            top: calc(20px + var(--safe-top));
+            left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: var(--surface2);
+            border: 1px solid var(--green);
+            border-radius: 14px;
+            padding: 12px 20px;
             display: flex; align-items: center; gap: 10px;
             z-index: 200;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
             box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
+
         .toast.show { transform: translateX(-50%) translateY(0); }
         .toast-text { font-size: 14px; font-weight: 600; }
 
         .toast-undo {
-            padding: 4px 12px; border-radius: 8px; border: 1px solid var(--green);
-            background: transparent; color: var(--green);
-            font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer;
+            padding: 4px 12px; border-radius: 8px;
+            border: 1px solid var(--green); background: transparent;
+            color: var(--green); font-family: 'Heebo', sans-serif;
+            font-size: 12px; font-weight: 700; cursor: pointer;
         }
 
-        /* LOADING */
+        /* === LOADING === */
         .loading-screen {
             position: fixed; inset: 0; background: var(--bg);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             z-index: 300; transition: opacity 0.4s;
         }
-        .loading-screen.hide { opacity: 0; pointer-events: none; }
 
+        .loading-screen.hide { opacity: 0; pointer-events: none; }
         .loading-dog { font-size: 56px; animation: loadBounce 1s ease-in-out infinite; }
 
         @keyframes loadBounce {
-            0%,100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-12px) scale(1.05); }
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         .loading-bar {
-            width: 120px; height: 4px; background: var(--surface2);
+            width: 100px; height: 3px; background: var(--surface2);
             border-radius: 2px; margin-top: 20px; overflow: hidden;
         }
+
         .loading-bar::after {
             content: ''; display: block; width: 40%; height: 100%;
             background: var(--green); border-radius: 2px;
             animation: loadSlide 1s ease-in-out infinite;
         }
+
         @keyframes loadSlide { 0%{transform:translateX(-100%);} 100%{transform:translateX(350%);} }
+
+        /* === NOTIFICATION BANNER (small) === */
+        .notif-mini {
+            display: none;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .notif-mini.show { display: flex; }
+
+        .notif-mini button {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: none;
+            background: var(--green);
+            color: #fff;
+            font-family: 'Heebo', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Settings link */
+        .settings-link {
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .settings-link button {
+            background: none; border: none;
+            color: var(--text3); font-family: 'Heebo', sans-serif;
+            font-size: 12px; cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -417,76 +562,76 @@
 
     <div class="toast" id="toast">
         <span>✓</span>
-        <span class="toast-text" id="toastText">נרשם!</span>
+        <span class="toast-text" id="toastText"></span>
         <button class="toast-undo" id="toastUndo">ביטול</button>
     </div>
 
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="c-emoji">💊</div>
+            <div class="c-text" id="confirmText"></div>
+            <div class="confirm-btns">
+                <button class="c-cancel" id="confirmCancel">ביטול</button>
+                <button class="c-ok" id="confirmOk">אישור</button>
+            </div>
+        </div>
+    </div>
+
     <div class="app">
-        <div class="topbar">
-            <div class="topbar-title">
-                <div class="dog-icon">🐕</div>
-                <h1>DogMeds</h1>
+        <!-- WELCOME SCREEN -->
+        <div class="screen welcome" id="welcomeScreen">
+            <div class="welcome-emoji">🐕💊</div>
+            <h1>שלום!<br>מי את/ה?</h1>
+            <p>כתוב את השם שלך כדי שנדע מי נתן את הכדור לזקי</p>
+            <div class="welcome-input-wrap">
+                <input class="welcome-input" type="text" id="nameInput" placeholder="השם שלך..." maxlength="20" autocomplete="off">
             </div>
-            <button class="icon-btn" id="refreshBtn" title="רענן">↻</button>
+            <button class="welcome-btn" id="welcomeBtn" disabled>יאללה, בוא נתחיל</button>
         </div>
 
-        <div class="content" id="mainContent">
-            <div class="notif-banner" id="notifBanner">
-                <div class="notif-banner-text">
-                    <strong>🔔 התראות</strong><br>
-                    קבל תזכורת כשהגיע הזמן לתת כדור
+        <!-- MAIN SCREEN -->
+        <div class="screen main" id="mainScreen">
+            <div class="greeting">
+                <h2>שלום, <span id="userName"></span> 👋</h2>
+                <div class="time-now" id="timeNow"></div>
+            </div>
+
+            <div class="hero">
+                <div class="hero-status" id="heroStatus"></div>
+
+                <div class="big-btn-wrap">
+                    <div class="big-btn-ring" id="btnRing"></div>
+                    <button class="big-btn" id="bigBtn">
+                        <span class="btn-emoji" id="btnEmoji"></span>
+                        <span class="btn-text" id="btnText"></span>
+                    </button>
                 </div>
-                <button class="notif-allow-btn" id="notifAllowBtn">אפשר התראות</button>
+
+                <div id="heroInfo"></div>
             </div>
 
-            <div>
-                <div class="section-label">מי נותנ/ת?</div>
-                <div style="height:10px"></div>
-                <div class="name-bar" id="nameBar"></div>
-            </div>
-
-            <div class="section-label">מנות היום</div>
-            <div id="timeline"></div>
-
-            <div class="history-card">
-                <div class="history-header" id="historyToggle">
-                    <h3>📋 היסטוריה</h3>
-                    <span class="arrow" id="historyArrow">▼</span>
+            <div class="bottom">
+                <div class="notif-mini" id="notifBanner">
+                    <span>🔔 קבל תזכורות</span>
+                    <button id="notifBtn">אפשר</button>
                 </div>
-                <div class="history-list" id="historyList"></div>
-            </div>
-        </div>
-    </div>
 
-    <div class="modal-overlay" id="addNameModal">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>הוספת שם</h3>
-            <input class="modal-input" type="text" id="newNameInput" placeholder="הכנס שם..." maxlength="20" autocomplete="off">
-            <div class="modal-btns">
-                <button class="modal-cancel" id="cancelName">ביטול</button>
-                <button class="modal-confirm" id="confirmName">הוסף</button>
-            </div>
-        </div>
-    </div>
+                <div class="today-bar" id="todayBar"></div>
+                <div class="today-labels" id="todayLabels"></div>
 
-    <div class="modal-overlay" id="confirmGiveModal">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <div class="confirm-modal-content">
-                <div class="confirm-emoji">💊</div>
-                <p id="confirmGiveText"></p>
-                <div class="modal-btns">
-                    <button class="modal-cancel" id="cancelGive">ביטול</button>
-                    <button class="modal-confirm" id="confirmGive">אישור</button>
+                <button class="history-btn" id="historyBtn">📋 היסטוריה</button>
+                <div class="history-panel" id="historyPanel"></div>
+
+                <div class="settings-link">
+                    <button id="changeName">שנה שם</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://sufelldngosrvtpxyqqo.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1ZmVsbGRuZ29zcnZ0cHh5cXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTkxMTIsImV4cCI6MjA4Nzg3NTExMn0.Z4ab5FMx7P076TlGQtvnK5yUVge_igG5rzZje7vsJRk';
+        const SUPA_URL = 'https://sufelldngosrvtpxyqqo.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1ZmVsbGRuZ29zcnZ0cHh5cXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTkxMTIsImV4cCI6MjA4Nzg3NTExMn0.Z4ab5FMx7P076TlGQtvnK5yUVge_igG5rzZje7vsJRk';
 
         const DOSES = [
             { hour: 7, minute: 30, label: 'בוקר' },
@@ -495,18 +640,16 @@
             { hour: 23, minute: 30, label: 'לילה' },
         ];
         const EARLY_MIN = 20;
+        const DOG_NAME = 'זקי';
 
-        let selectedName = localStorage.getItem('dm_name') || '';
-        let names = JSON.parse(localStorage.getItem('dm_names') || '[]');
+        let myName = localStorage.getItem('dm_name') || '';
         let logs = [];
         let lastId = null;
-        let pendingIdx = null;
-        let pendingEarly = false;
 
-        // Supabase
+        // === SUPABASE ===
         async function supa(path, opts = {}) {
-            const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': opts.prefer || 'return=representation' },
+            const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+                headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': opts.prefer || 'return=representation' },
                 ...opts
             });
             if (!r.ok) throw new Error(r.status);
@@ -518,7 +661,7 @@
             logs = (await supa('med_logs?order=given_at.desc&limit=100')) || [];
         }
 
-        // Dose status calculation
+        // === DOSE LOGIC ===
         function getDoses() {
             const now = new Date();
             const today = new Date(now); today.setHours(0,0,0,0);
@@ -546,159 +689,190 @@
             });
         }
 
-        // Render
-        function renderTimeline() {
-            const el = document.getElementById('timeline');
+        function getCurrentDose() {
             const doses = getDoses();
-            const cfg = {
-                given:    { badge: 'ניתן ✓', bc: 'badge-given', icon: '✅' },
-                missed:   { badge: 'לא ניתן', bc: 'badge-missed', icon: '❌' },
-                active:   { badge: 'עכשיו!', bc: 'badge-active', icon: '⏰' },
-                early:    { badge: 'בקרוב', bc: 'badge-early', icon: '🕐' },
-                upcoming: { badge: 'ממתין', bc: 'badge-upcoming', icon: '⏳' },
-            };
-
-            el.innerHTML = doses.map(dose => {
-                const ts = `${String(dose.hour).padStart(2,'0')}:${String(dose.minute).padStart(2,'0')}`;
-                const c = cfg[dose.status];
-                let info = '';
-                if (dose.status === 'given') {
-                    const t = new Date(dose.givenAt).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-                    const esp = dose.givenBy === 'ESP32' ? '<span class="esp-tag">⚡ ESP32</span>' : '';
-                    info = `<div class="dose-info">${dose.givenBy} נתנ/ה ב-${t} ${esp}</div>`;
-                }
-
-                let action = '';
-                const dis = !selectedName;
-                if (dose.status === 'active' || dose.status === 'missed') {
-                    const label = dose.status === 'missed' ? 'תת עכשיו (באיחור)' : (selectedName ? selectedName + ' נותנ/ת כדור' : 'בחר שם קודם');
-                    action = `<div class="dose-action"><button class="dose-give-btn ${dis?'disabled':'primary'}" onclick="promptGive(${dose.index},false)" ${dis?'disabled':''}> 💊 ${label}</button></div>`;
-                } else if (dose.status === 'early') {
-                    action = `<div class="dose-action"><button class="dose-give-btn ${dis?'disabled':'early-btn'}" onclick="promptGive(${dose.index},true)" ${dis?'disabled':''}>🕐 ${selectedName?'תת מוקדם':'בחר שם קודם'}</button></div>`;
-                }
-
-                return `<div class="dose-card ${dose.status}">
-                    <div class="dose-top">
-                        <div class="dose-time-wrap">
-                            <div class="dose-icon">${c.icon}</div>
-                            <div><div class="dose-time">${ts}</div><div class="dose-label">${dose.label}</div></div>
-                        </div>
-                        <span class="dose-badge ${c.bc}">${c.badge}</span>
-                    </div>
-                    ${info}${action}
-                </div>`;
-            }).join('');
+            // Priority: active > early > missed > upcoming (first)
+            return doses.find(d => d.status === 'active')
+                || doses.find(d => d.status === 'early')
+                || doses.find(d => d.status === 'missed')
+                || doses.find(d => d.status === 'upcoming')
+                || doses[doses.length - 1]; // fallback: last dose
         }
 
-        function renderNames() {
-            const bar = document.getElementById('nameBar');
-            bar.innerHTML = names.map(n =>
-                `<button class="name-pill ${n===selectedName?'selected':''}" onclick="selectName('${n}')">${n}</button>`
-            ).join('') + `<button class="name-pill add" onclick="showAddName()">+ הוסף</button>`;
+        function getNextDose(doses) {
+            const current = doses.find(d => d.status === 'active' || d.status === 'early');
+            if (current) {
+                const ts = fmtTime(current.hour, current.minute);
+                return { label: current.label, time: ts };
+            }
+            // Find next upcoming or first one not given
+            const next = doses.find(d => d.status === 'upcoming');
+            if (next) return { label: next.label, time: fmtTime(next.hour, next.minute) };
+
+            // All done today or missed — show tomorrow morning
+            return { label: 'מחר בבוקר', time: '07:30' };
+        }
+
+        function fmtTime(h, m) { return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+
+        // === RENDER ===
+        function render() {
+            const now = new Date();
+            document.getElementById('timeNow').textContent = now.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('userName').textContent = myName;
+
+            const doses = getDoses();
+            const focus = getCurrentDose();
+            const btn = document.getElementById('bigBtn');
+            const ring = document.getElementById('btnRing');
+            const emoji = document.getElementById('btnEmoji');
+            const text = document.getElementById('btnText');
+            const status = document.getElementById('heroStatus');
+            const info = document.getElementById('heroInfo');
+
+            const focusTime = fmtTime(focus.hour, focus.minute);
+
+            btn.onclick = null;
+            ring.className = 'big-btn-ring';
+
+            if (focus.status === 'active') {
+                // Needs to give NOW
+                emoji.textContent = '💊';
+                text.textContent = 'נתתי כדור!';
+                btn.className = 'big-btn give';
+                ring.classList.add('pulse');
+                status.innerHTML = `<div>הגיע הזמן! מנת <strong>${focus.label}</strong></div><div class="next-time">${focusTime}</div>`;
+                info.innerHTML = '';
+                btn.onclick = () => promptGive(focus.index, false);
+
+            } else if (focus.status === 'early') {
+                // Can give early
+                emoji.textContent = '🕐';
+                text.textContent = 'לתת מוקדם';
+                btn.className = 'big-btn early';
+                ring.classList.add('pulse-blue');
+                status.innerHTML = `<div>הכדור הבא ב-<span class="next-time">${focusTime}</span></div><div class="dose-label">אפשר לתת עכשיו מוקדם</div>`;
+                info.innerHTML = '';
+                btn.onclick = () => promptGive(focus.index, true);
+
+            } else if (focus.status === 'given') {
+                // Current/recent dose was given
+                const givenTime = new Date(focus.givenAt).toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+                const espTag = focus.givenBy === 'ESP32' ? ' <span class="esp-tag">⚡ ESP32</span>' : '';
+                emoji.textContent = '✅';
+                text.textContent = 'ניתן!';
+                btn.className = 'big-btn done';
+                btn.onclick = null;
+
+                const nextDose = getNextDose(doses);
+                status.innerHTML = `<div>הכדור של ${focusTime} ניתן ✓</div>`;
+                info.innerHTML = `
+                    <div class="given-info">
+                        <span class="by-name">${focus.givenBy}</span>${espTag} נתנ/ה ב-${givenTime}
+                    </div>
+                    <br>
+                    <div class="next-dose-info">הכדור הבא: <span class="next-val">${nextDose.time}</span> (${nextDose.label})</div>
+                `;
+
+            } else if (focus.status === 'missed') {
+                emoji.textContent = '⚠️';
+                text.textContent = 'תת עכשיו!';
+                btn.className = 'big-btn give';
+                ring.classList.add('pulse');
+                status.innerHTML = `<div style="color:var(--red)">פספסנו את מנת ה${focus.label} (${focusTime})</div>`;
+                info.innerHTML = '';
+                btn.onclick = () => promptGive(focus.index, false);
+
+            } else if (focus.status === 'upcoming') {
+                emoji.textContent = '⏳';
+                text.textContent = 'ממתין';
+                btn.className = 'big-btn waiting';
+                btn.onclick = null;
+                status.innerHTML = `<div>הכדור הבא</div><div class="next-time">${focusTime}</div><div class="dose-label">${focus.label}</div>`;
+                info.innerHTML = '';
+            }
+
+            // Today progress bar
+            const bar = document.getElementById('todayBar');
+            const labels = document.getElementById('todayLabels');
+            bar.innerHTML = doses.map(d => `<div class="today-dot ${d.status}"></div>`).join('');
+            labels.innerHTML = doses.map(d => {
+                const cls = d.status === 'active' ? 'active' : d.status === 'given' ? 'given' : d.status === 'missed' ? 'missed' : '';
+                return `<span class="today-label ${cls}">${fmtTime(d.hour, d.minute)}</span>`;
+            }).join('');
+
+            renderHistory();
         }
 
         function renderHistory() {
-            const el = document.getElementById('historyList');
-            if (!logs.length) { el.innerHTML = '<div class="history-empty">אין רשומות עדיין</div>'; return; }
+            const el = document.getElementById('historyPanel');
+            if (!logs.length) { el.innerHTML = '<div class="h-empty">אין רשומות</div>'; return; }
 
             let html = '', curDay = '';
-            logs.slice(0, 50).forEach(log => {
+            logs.slice(0, 30).forEach(log => {
                 const d = new Date(log.given_at);
-                const ds = d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
-                const t = d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+                const ds = d.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+                const t = d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
 
                 if (ds !== curDay) {
                     curDay = ds;
                     const today = new Date(); today.setHours(0,0,0,0);
                     const ld = new Date(d); ld.setHours(0,0,0,0);
-                    const diff = Math.floor((today-ld)/86400000);
+                    const diff = Math.floor((today - ld) / 86400000);
                     let lbl = ds;
-                    if (diff===0) lbl = 'היום — ' + ds;
-                    else if (diff===1) lbl = 'אתמול — ' + ds;
-                    html += `<div class="history-day">${lbl}</div>`;
+                    if (diff === 0) lbl = 'היום';
+                    else if (diff === 1) lbl = 'אתמול';
+                    html += `<div class="h-day">${lbl}</div>`;
                 }
 
-                const esp = log.given_by==='ESP32'?' <span class="esp-tag">⚡ ESP32</span>':'';
-                html += `<div class="history-item"><div class="h-who">${log.given_by}${esp}</div><div class="h-when">${t}</div></div>`;
+                const esp = log.given_by === 'ESP32' ? ' <span class="esp-tag" style="display:inline-flex;align-items:center;gap:3px;background:rgba(255,165,2,0.12);color:#ffa502;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;">⚡ ESP32</span>' : '';
+                html += `<div class="h-item"><span class="h-who">${log.given_by}${esp}</span><span class="h-when">${t}</span></div>`;
             });
             el.innerHTML = html;
         }
 
-        function renderAll() { renderTimeline(); renderNames(); renderHistory(); }
-
-        // Actions
-        function selectName(n) {
-            selectedName = n;
-            localStorage.setItem('dm_name', n);
-            renderAll();
-        }
-
+        // === ACTIONS ===
         function promptGive(idx, early) {
-            if (!selectedName) return;
-            pendingIdx = idx; pendingEarly = early;
             const d = DOSES[idx];
-            const ts = `${String(d.hour).padStart(2,'0')}:${String(d.minute).padStart(2,'0')}`;
-            const et = early ? ' (מוקדם)' : '';
-            document.getElementById('confirmGiveText').innerHTML =
-                `<span class="hl">${selectedName}</span> נותנ/ת כדור של <span class="hl">${ts}</span>${et}?`;
-            document.getElementById('confirmGiveModal').classList.add('show');
+            const ts = fmtTime(d.hour, d.minute);
+            const earlyTxt = early ? ' (מוקדם)' : '';
+            document.getElementById('confirmText').innerHTML = `<strong>${myName}</strong> נותנ/ת כדור ל${DOG_NAME}<br>מנת ${d.label} — ${ts}${earlyTxt}`;
+            document.getElementById('confirmOverlay').classList.add('show');
+
+            document.getElementById('confirmOk').onclick = async () => {
+                document.getElementById('confirmOverlay').classList.remove('show');
+                try {
+                    const data = await supa('med_logs', { method: 'POST', body: JSON.stringify({ given_by: myName }) });
+                    lastId = data?.[0]?.id;
+                    showToast(`${myName} נתנ/ה כדור ל${DOG_NAME} ✓`);
+                    await loadLogs();
+                    render();
+                } catch(e) { alert('שגיאה'); console.error(e); }
+            };
         }
 
-        async function doGive() {
-            document.getElementById('confirmGiveModal').classList.remove('show');
-            if (pendingIdx === null || !selectedName) return;
-            try {
-                const data = await supa('med_logs', { method: 'POST', body: JSON.stringify({ given_by: selectedName }) });
-                lastId = data?.[0]?.id;
-                document.getElementById('toastText').textContent = `${selectedName} נתנ/ה כדור ✓`;
-                const toast = document.getElementById('toast');
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 5000);
-                await loadLogs();
-                renderAll();
-            } catch(e) { alert('שגיאה בשמירה'); console.error(e); }
-            pendingIdx = null; pendingEarly = false;
+        function showToast(msg) {
+            document.getElementById('toastText').textContent = msg;
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 5000);
         }
 
         async function undoLast() {
             if (!lastId) return;
             try {
-                await supa(`med_logs?id=eq.${lastId}`, { method:'DELETE', prefer:'return=minimal' });
+                await supa(`med_logs?id=eq.${lastId}`, { method: 'DELETE', prefer: 'return=minimal' });
                 lastId = null;
                 document.getElementById('toast').classList.remove('show');
-                await loadLogs(); renderAll();
-            } catch(e) { alert('שגיאה בביטול'); }
+                await loadLogs(); render();
+            } catch(e) { alert('שגיאה'); }
         }
 
-        // Name modal
-        function showAddName() {
-            document.getElementById('addNameModal').classList.add('show');
-            const inp = document.getElementById('newNameInput');
-            inp.value = '';
-            setTimeout(() => inp.focus(), 200);
-        }
-
-        function doAddName() {
-            const n = document.getElementById('newNameInput').value.trim();
-            if (!n) return;
-            if (!names.includes(n)) { names.push(n); localStorage.setItem('dm_names', JSON.stringify(names)); }
-            selectedName = n; localStorage.setItem('dm_name', n);
-            document.getElementById('addNameModal').classList.remove('show');
-            renderAll();
-        }
-
-        // Notifications
+        // === NOTIFICATIONS ===
         function checkNotif() {
             if ('Notification' in window && Notification.permission === 'default') {
                 document.getElementById('notifBanner').classList.add('show');
             }
-        }
-
-        async function reqNotif() {
-            if (!('Notification' in window)) return;
-            await Notification.requestPermission();
-            document.getElementById('notifBanner').classList.remove('show');
-            if (Notification.permission === 'granted') startNotifLoop();
         }
 
         function startNotifLoop() { setInterval(checkAndNotify, 60000); checkAndNotify(); }
@@ -706,12 +880,11 @@
         function checkAndNotify() {
             if (Notification.permission !== 'granted') return;
             getDoses().filter(d => d.status === 'active').forEach(dose => {
-                const ts = `${String(dose.hour).padStart(2,'0')}:${String(dose.minute).padStart(2,'0')}`;
                 const key = `notif_${dose.index}_${new Date().toDateString()}`;
                 const last = parseInt(localStorage.getItem(key) || '0');
                 if (Date.now() - last >= 5 * 60000) {
-                    new Notification('💊 הגיע הזמן לכדור!', {
-                        body: `מנת ${dose.label} (${ts}) — טרם ניתנה`,
+                    new Notification(`💊 הגיע הזמן לתת כדור ל${DOG_NAME}!`, {
+                        body: `מנת ${dose.label} (${fmtTime(dose.hour, dose.minute)})`,
                         icon: 'icon-192.png',
                         tag: `dose-${dose.index}`,
                         renotify: true,
@@ -721,45 +894,76 @@
             });
         }
 
-        // Events
-        document.getElementById('confirmGive').onclick = doGive;
-        document.getElementById('cancelGive').onclick = () => document.getElementById('confirmGiveModal').classList.remove('show');
-        document.getElementById('confirmName').onclick = doAddName;
-        document.getElementById('cancelName').onclick = () => document.getElementById('addNameModal').classList.remove('show');
-        document.getElementById('newNameInput').onkeyup = e => { if (e.key==='Enter') doAddName(); };
+        // === EVENTS ===
+        document.getElementById('nameInput').oninput = e => {
+            document.getElementById('welcomeBtn').disabled = !e.target.value.trim();
+        };
+
+        document.getElementById('nameInput').onkeyup = e => {
+            if (e.key === 'Enter' && e.target.value.trim()) startApp(e.target.value.trim());
+        };
+
+        document.getElementById('welcomeBtn').onclick = () => {
+            const n = document.getElementById('nameInput').value.trim();
+            if (n) startApp(n);
+        };
+
+        function startApp(name) {
+            myName = name;
+            localStorage.setItem('dm_name', name);
+            document.getElementById('welcomeScreen').classList.remove('active');
+            document.getElementById('mainScreen').classList.add('active');
+            render();
+        }
+
+        document.getElementById('confirmCancel').onclick = () => document.getElementById('confirmOverlay').classList.remove('show');
+        document.getElementById('confirmOverlay').onclick = e => { if (e.target === e.currentTarget) e.target.classList.remove('show'); };
         document.getElementById('toastUndo').onclick = undoLast;
-        document.getElementById('notifAllowBtn').onclick = reqNotif;
 
-        document.getElementById('refreshBtn').onclick = async () => {
-            const b = document.getElementById('refreshBtn');
-            b.style.animation = 'spin 0.6s linear';
-            await loadLogs(); renderAll();
-            setTimeout(() => b.style.animation = '', 600);
+        document.getElementById('historyBtn').onclick = () => {
+            document.getElementById('historyPanel').classList.toggle('open');
         };
 
-        document.getElementById('historyToggle').onclick = () => {
-            document.getElementById('historyList').classList.toggle('open');
-            document.getElementById('historyArrow').classList.toggle('open');
+        document.getElementById('changeName').onclick = () => {
+            localStorage.removeItem('dm_name');
+            myName = '';
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('welcomeScreen').classList.add('active');
+            document.getElementById('nameInput').value = '';
+            document.getElementById('welcomeBtn').disabled = true;
         };
 
-        ['addNameModal','confirmGiveModal'].forEach(id => {
-            document.getElementById(id).onclick = e => { if (e.target===e.currentTarget) e.target.classList.remove('show'); };
-        });
+        document.getElementById('notifBtn').onclick = async () => {
+            if (!('Notification' in window)) return;
+            await Notification.requestPermission();
+            document.getElementById('notifBanner').classList.remove('show');
+            if (Notification.permission === 'granted') startNotifLoop();
+        };
 
         // Auto refresh
-        setInterval(async () => { await loadLogs(); renderAll(); }, 30000);
-        setInterval(renderAll, 60000);
+        setInterval(async () => { try { await loadLogs(); render(); } catch(e){} }, 30000);
+        setInterval(() => { if (myName) render(); }, 60000);
 
-        // Init
+        // === INIT ===
         (async () => {
             try {
-                await loadLogs(); renderAll(); checkNotif();
+                await loadLogs();
+                if (myName) {
+                    document.getElementById('mainScreen').classList.add('active');
+                    render();
+                } else {
+                    document.getElementById('welcomeScreen').classList.add('active');
+                }
+                checkNotif();
                 if (Notification.permission === 'granted') startNotifLoop();
-                setTimeout(() => document.getElementById('loadingScreen').classList.add('hide'), 500);
+                setTimeout(() => document.getElementById('loadingScreen').classList.add('hide'), 400);
             } catch(e) {
                 console.error(e);
                 document.getElementById('loadingScreen').innerHTML =
-                    `<div style="text-align:center;color:var(--red);padding:20px;">שגיאה בחיבור<br><button onclick="location.reload()" style="margin-top:16px;padding:12px 32px;border-radius:12px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:'Heebo';cursor:pointer;">נסה שוב</button></div>`;
+                    `<div style="text-align:center;color:var(--red);padding:20px;font-family:'Heebo',sans-serif;">
+                        שגיאה בחיבור לשרת<br>
+                        <button onclick="location.reload()" style="margin-top:16px;padding:12px 32px;border-radius:14px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:'Heebo';font-size:14px;cursor:pointer;">נסה שוב</button>
+                    </div>`;
             }
         })();
     </script>
