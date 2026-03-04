@@ -922,7 +922,8 @@
 
         // === NOTIFICATIONS ===
         function checkNotif() {
-            if ('Notification' in window && Notification.permission === 'default') {
+            if (typeof Notification === 'undefined') return;
+            if (Notification.permission === 'default') {
                 document.getElementById('notifBanner').classList.add('show');
             }
         }
@@ -930,6 +931,7 @@
         function startNotifLoop() { setInterval(checkAndNotify, 60000); checkAndNotify(); }
 
         function checkAndNotify() {
+            if (typeof Notification === 'undefined') return;
             if (Notification.permission !== 'granted') return;
             getDoses().filter(d => d.status === 'active').forEach(dose => {
                 const key = `notif_${dose.index}_${new Date().toDateString()}`;
@@ -986,7 +988,11 @@
         };
 
         document.getElementById('notifBtn').onclick = async () => {
-            if (!('Notification' in window)) return;
+            if (typeof Notification === 'undefined') {
+                alert('התראות לא נתמכות בדפדפן זה. הוסף את האתר למסך הבית כדי לקבל התראות.');
+                document.getElementById('notifBanner').classList.remove('show');
+                return;
+            }
             await Notification.requestPermission();
             document.getElementById('notifBanner').classList.remove('show');
             if (Notification.permission === 'granted') startNotifLoop();
@@ -1007,7 +1013,7 @@
                     document.getElementById('welcomeScreen').classList.add('active');
                 }
                 checkNotif();
-                if (Notification.permission === 'granted') startNotifLoop();
+                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') startNotifLoop();
                 setTimeout(() => document.getElementById('loadingScreen').classList.add('hide'), 400);
             } catch(e) {
                 console.error(e);
