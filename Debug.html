@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DogMeds Debug</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #0f0; padding: 20px; font-size: 14px; }
+        .line { margin: 4px 0; }
+        .err { color: #f44; }
+        .ok { color: #0f0; }
+        .warn { color: #fa0; }
+        button { margin-top: 16px; padding: 12px 24px; font-size: 16px; background: #0f0; color: #111; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="log"></div>
+    <button onclick="runTests()">הרץ בדיקות</button>
+    <script>
+        const el = document.getElementById('log');
+        function log(msg, type) {
+            const d = document.createElement('div');
+            d.className = 'line ' + (type || '');
+            d.textContent = '> ' + msg;
+            el.appendChild(d);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        async function runTests() {
+            el.innerHTML = '';
+            log('=== DogMeds Debug ===');
+            log('User Agent: ' + navigator.userAgent);
+            log('Time: ' + new Date().toString());
+            log('Timezone offset: ' + new Date().getTimezoneOffset() + ' min');
+            log('');
+
+            // Test 1: Basic fetch
+            log('--- Test 1: fetch to google ---');
+            try {
+                const r = await fetch('https://www.google.com', { mode: 'no-cors' });
+                log('Google fetch OK (no-cors)', 'ok');
+            } catch(e) {
+                log('Google fetch FAILED: ' + e.message, 'err');
+            }
+
+            // Test 2: Supabase health
+            log('');
+            log('--- Test 2: Supabase REST API ---');
+            const url = 'https://sufelldngosrvtpxyqqo.supabase.co/rest/v1/med_logs?limit=1';
+            const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1ZmVsbGRuZ29zcnZ0cHh5cXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTkxMTIsImV4cCI6MjA4Nzg3NTExMn0.Z4ab5FMx7P076TlGQtvnK5yUVge_igG5rzZje7vsJRk';
+
+            try {
+                log('Fetching: ' + url);
+                const r = await fetch(url, {
+                    headers: {
+                        'apikey': key,
+                        'Authorization': 'Bearer ' + key,
+                    }
+                });
+                log('Status: ' + r.status + ' ' + r.statusText, r.ok ? 'ok' : 'err');
+                
+                const headers = {};
+                r.headers.forEach((v, k) => { headers[k] = v; });
+                log('Response headers: ' + JSON.stringify(headers));
+
+                const text = await r.text();
+                log('Response body: ' + text, 'ok');
+            } catch(e) {
+                log('FETCH FAILED!', 'err');
+                log('Error name: ' + e.name, 'err');
+                log('Error message: ' + e.message, 'err');
+                log('Error stack: ' + (e.stack || 'none'), 'err');
+            }
+
+            // Test 3: Simple GET with apikey as query param
+            log('');
+            log('--- Test 3: API key as query param ---');
+            try {
+                const r2 = await fetch(url + '&apikey=' + key);
+                log('Status: ' + r2.status, r2.ok ? 'ok' : 'err');
+                const t2 = await r2.text();
+                log('Body: ' + t2, 'ok');
+            } catch(e) {
+                log('FAILED: ' + e.message, 'err');
+            }
+
+            log('');
+            log('=== Done ===');
+        }
+
+        runTests();
+    </script>
+</body>
+</html>
