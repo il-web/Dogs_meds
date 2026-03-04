@@ -930,10 +930,11 @@
 
         function startNotifLoop() { setInterval(checkAndNotify, 60000); checkAndNotify(); }
 
-        function checkAndNotify() {
+        async function checkAndNotify() {
             if (typeof Notification === 'undefined') return;
             if (Notification.permission !== 'granted') return;
-            getDoses().filter(d => d.status === 'active').forEach(dose => {
+            try { await loadLogs(); } catch(e) {}
+            getDoses().filter(d => d.status === 'active' || d.status === 'missed').forEach(dose => {
                 const key = `notif_${dose.index}_${new Date().toDateString()}`;
                 const last = parseInt(localStorage.getItem(key) || '0');
                 if (Date.now() - last >= 5 * 60000) {
