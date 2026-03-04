@@ -1012,9 +1012,10 @@
             } catch(e) {
                 console.error(e);
                 document.getElementById('loadingScreen').innerHTML =
-                    `<div style="text-align:center;color:var(--red);padding:20px;font-family:'Heebo',sans-serif;">
-                        שגיאה בחיבור לשרת<br>
-                        <button onclick="location.reload()" style="margin-top:16px;padding:12px 32px;border-radius:14px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:'Heebo';font-size:14px;cursor:pointer;">נסה שוב</button>
+                    `<div style="text-align:center;padding:20px;font-family:'Heebo',sans-serif;">
+                        <div style="color:#ff4757;font-size:18px;margin-bottom:12px;">שגיאה בחיבור לשרת</div>
+                        <div style="color:#888;font-size:12px;word-break:break-all;margin-bottom:16px;">${e.name}: ${e.message}</div>
+                        <button onclick="location.reload()" style="padding:12px 32px;border-radius:14px;border:1px solid #ff4757;background:transparent;color:#ff4757;font-family:'Heebo';font-size:14px;cursor:pointer;">נסה שוב</button>
                     </div>`;
             }
         })();
