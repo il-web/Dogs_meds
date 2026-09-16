@@ -636,17 +636,11 @@
         const SUPA_URL = 'https://sufelldngosrvtpxyqqo.supabase.co';
         const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1ZmVsbGRuZ29zcnZ0cHh5cXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTkxMTIsImV4cCI6MjA4Nzg3NTExMn0.Z4ab5FMx7P076TlGQtvnK5yUVge_igG5rzZje7vsJRk';
 
-        const DOSES = [
-            { hour: 7, minute: 30, label: 'בוקר' },
-            { hour: 15, minute: 30, label: 'צהריים' },
-            { hour: 19, minute: 30, label: 'ערב' },
-            { hour: 23, minute: 30, label: 'לילה' },
-        ];
-        const EARLY_MIN = 20;
         const DOG_NAME = 'זקי';
 
         let myName = localStorage.getItem('dm_name') || '';
         let logs = [];
+        let doseStatus = []; // from the shared dose-status function - single source of truth, also used by the Telegram bot
         let lastId = null;
 
         // === SUPABASE ===
@@ -664,69 +658,18 @@
             logs = (await supa('med_logs?order=given_at.desc&limit=100')) || [];
         }
 
+        async function loadDoseStatus() {
+            const r = await fetch(`${SUPA_URL}/functions/v1/dose-status`, {
+                headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+            });
+            if (!r.ok) throw new Error(r.status);
+            const data = await r.json();
+            doseStatus = data.doses;
+        }
+
         // === DOSE LOGIC ===
         function getDoses() {
-            const now = new Date();
-            const today = new Date(now); today.setHours(0,0,0,0);
-            const todayLogs = logs.filter(l => new Date(l.given_at) >= today);
-
-            // Build dose times
-            const doseTimes = DOSES.map((d) => {
-                const dt = new Date(today);
-                dt.setHours(d.hour, d.minute, 0, 0);
-                return dt.getTime();
-            });
-
-            // Each dose owns from its own time (minus early window) until the next dose time
-            // First dose owns from start of day
-            const usedLogs = new Array(DOSES.length).fill(null);
-
-            // Sort logs oldest first so earliest log claims the dose
-            const sortedLogs = [...todayLogs].sort((a, b) => new Date(a.given_at) - new Date(b.given_at));
-
-            sortedLogs.forEach(log => {
-                const logTime = new Date(log.given_at).getTime();
-
-                for (let i = 0; i < DOSES.length; i++) {
-                    if (usedLogs[i]) continue; // already claimed
-
-                    const start = i === 0 ? today.getTime() : doseTimes[i] - EARLY_MIN * 60000;
-                    const end = i === DOSES.length - 1 ? today.getTime() + 86400000 : doseTimes[i + 1] - EARLY_MIN * 60000;
-
-                    if (logTime >= start && logTime < end) {
-                        usedLogs[i] = log;
-                        break;
-                    }
-                }
-
-                // If no window matched, assign to the most recent past dose that has no log
-                if (!usedLogs.some((l, i) => l === log)) {
-                    for (let i = DOSES.length - 1; i >= 0; i--) {
-                        if (!usedLogs[i] && new Date(log.given_at).getTime() >= doseTimes[i] - EARLY_MIN * 60000) {
-                            usedLogs[i] = log;
-                            break;
-                        }
-                    }
-                }
-            });
-
-            return DOSES.map((d, i) => {
-                const dt = new Date(today); dt.setHours(d.hour, d.minute, 0, 0);
-                const earlyT = new Date(dt.getTime() - EARLY_MIN * 60000);
-                const nextDoseTime = i < DOSES.length - 1 ? doseTimes[i + 1] : today.getTime() + 86400000;
-                const wEnd = new Date(nextDoseTime - EARLY_MIN * 60000);
-
-                const match = usedLogs[i];
-
-                let status;
-                if (match) status = 'given';
-                else if (now >= earlyT && now < dt) status = 'early';
-                else if (now >= dt && now < wEnd) status = 'active';
-                else if (now >= wEnd) status = 'missed';
-                else status = 'upcoming';
-
-                return { ...d, index: i, doseTime: dt, status, givenBy: match?.given_by, givenAt: match?.given_at, logId: match?.id };
-            });
+            return doseStatus;
         }
 
         function getCurrentDose() {
@@ -795,7 +738,7 @@
                 ring.classList.add('pulse');
                 status.innerHTML = `<div>הגיע הזמן! מנת <strong>${focus.label}</strong></div><div class="next-time">${focusTime}</div>`;
                 info.innerHTML = '';
-                btn.onclick = () => promptGive(focus.index, false);
+                btn.onclick = () => promptGive(focus, false);
 
             } else if (focus.status === 'early') {
                 // Can give early
@@ -805,7 +748,7 @@
                 ring.classList.add('pulse-blue');
                 status.innerHTML = `<div>הכדור הבא ב-<span class="next-time">${focusTime}</span></div><div class="dose-label">אפשר לתת עכשיו מוקדם</div>`;
                 info.innerHTML = '';
-                btn.onclick = () => promptGive(focus.index, true);
+                btn.onclick = () => promptGive(focus, true);
 
             } else if (focus.status === 'given') {
                 // Current/recent dose was given
@@ -833,7 +776,7 @@
                 ring.classList.add('pulse');
                 status.innerHTML = `<div style="color:var(--red)">פספסנו את מנת ה${focus.label} (${focusTime})</div>`;
                 info.innerHTML = '';
-                btn.onclick = () => promptGive(focus.index, false);
+                btn.onclick = () => promptGive(focus, false);
 
             } else if (focus.status === 'upcoming') {
                 emoji.textContent = '⏳';
@@ -884,8 +827,7 @@
         }
 
         // === ACTIONS ===
-        function promptGive(idx, early) {
-            const d = DOSES[idx];
+        function promptGive(d, early) {
             const ts = fmtTime(d.hour, d.minute);
             const earlyTxt = early ? ' (מוקדם)' : '';
             document.getElementById('confirmText').innerHTML = `<strong>${myName}</strong> נותנ/ת כדור ל${DOG_NAME}<br>מנת ${d.label} — ${ts}${earlyTxt}`;
@@ -897,7 +839,7 @@
                     const data = await supa('med_logs', { method: 'POST', body: JSON.stringify({ given_by: myName }) });
                     lastId = data?.[0]?.id;
                     showToast(`${myName} נתנ/ה כדור ל${DOG_NAME} ✓`);
-                    await loadLogs();
+                    await Promise.all([loadLogs(), loadDoseStatus()]);
                     render();
                 } catch(e) { alert('שגיאה'); console.error(e); }
             };
@@ -916,7 +858,8 @@
                 await supa(`med_logs?id=eq.${lastId}`, { method: 'DELETE', prefer: 'return=minimal' });
                 lastId = null;
                 document.getElementById('toast').classList.remove('show');
-                await loadLogs(); render();
+                await Promise.all([loadLogs(), loadDoseStatus()]);
+                render();
             } catch(e) { alert('שגיאה'); }
         }
 
@@ -933,7 +876,7 @@
         async function checkAndNotify() {
             if (typeof Notification === 'undefined') return;
             if (Notification.permission !== 'granted') return;
-            try { await loadLogs(); } catch(e) {}
+            try { await Promise.all([loadLogs(), loadDoseStatus()]); } catch(e) {}
             getDoses().filter(d => d.status === 'active' || d.status === 'missed').forEach(dose => {
                 const key = `notif_${dose.index}_${new Date().toDateString()}`;
                 const last = parseInt(localStorage.getItem(key) || '0');
@@ -1000,13 +943,13 @@
         };
 
         // Auto refresh
-        setInterval(async () => { try { await loadLogs(); render(); } catch(e){} }, 30000);
+        setInterval(async () => { try { await Promise.all([loadLogs(), loadDoseStatus()]); render(); } catch(e){} }, 30000);
         setInterval(() => { if (myName) render(); }, 60000);
 
         // === INIT ===
         (async () => {
             try {
-                await loadLogs();
+                await Promise.all([loadLogs(), loadDoseStatus()]);
                 if (myName) {
                     document.getElementById('mainScreen').classList.add('active');
                     render();
