@@ -61,6 +61,14 @@ async function tgEditMessage(chatId: number, messageId: number, text: string) {
   });
 }
 
+async function tgEditKeyboard(chatId: number, messageId: number, replyMarkup: any) {
+  await fetch(`${TGAPI}/editMessageReplyMarkup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: replyMarkup }),
+  });
+}
+
 function getNowIsrael(): Date {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }).replace(',', ''));
 }
@@ -111,7 +119,37 @@ async function registerUser(chatId: number, name: string) {
 }
 
 async function getAllUsers() {
-  return await supaGet('telegram_users?select=chat_id,name');
+  return await supaGet('telegram_users?select=chat_id,name,muted_doses');
+}
+
+async function setMutedDoses(chatId: number, muted: number[]) {
+  const res = await supaFetch(`telegram_users?chat_id=eq.${chatId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ muted_doses: muted }),
+  });
+  if (!res.ok) throw new UpstreamError(`PATCH telegram_users failed: ${res.status}`);
+}
+
+const COMMANDS_HELP = '📌 <b>פקודות:</b>\n/give - נתתי כדור\n/status - סטטוס היום\n/mute - השתקת תזכורות';
+
+function muteKeyboard(doses: Dose[], muted: number[]) {
+  const rows = doses.map(d => [{
+    text: `${muted.includes(d.index) ? '🔕' : '🔔'} ${d.label} ${fmtTime(d.hour, d.minute)}`,
+    callback_data: `mute_${d.index}`,
+  }]);
+  const allMuted = doses.every(d => muted.includes(d.index));
+  rows.push([allMuted
+    ? { text: '🔔 בטל השתקה להכל', callback_data: 'unmute_all' }
+    : { text: '🔕 השתק הכל', callback_data: 'mute_all' }]);
+  rows.push([{ text: '✅ סיום', callback_data: 'mute_done' }]);
+  return { inline_keyboard: rows };
+}
+
+function muteSummary(doses: Dose[], muted: number[]) {
+  const labels = doses.filter(d => muted.includes(d.index)).map(d => d.label);
+  if (labels.length === 0) return '🔔 כל התזכורות פעילות.';
+  if (labels.length === doses.length) return '🔕 כל התזכורות מושתקות.\n\nשלח /mute כדי לבטל.';
+  return `🔕 מושתק: ${labels.join(', ')}\n\nשלח /mute כדי לשנות.`;
 }
 
 async function handleUpdate(update: any) {
@@ -122,7 +160,7 @@ async function handleUpdate(update: any) {
     if (text === '/start') {
       const user = await getUser(chatId);
       if (user) {
-        await tgSend(chatId, `שלום ${user.name}! 👋\nאת/ה כבר רשום/ה.\n\n📌 <b>פקודות:</b>\n/give - נתתי כדור\n/status - סטטוס היום`);
+        await tgSend(chatId, `שלום ${user.name}! 👋\nאת/ה כבר רשום/ה.\n\n${COMMANDS_HELP}`);
       } else {
         await tgSend(chatId, '🐕💊 שלום! אני הבוט של זקי.\n\nמה השם שלך? (כתוב את השם שלך)');
       }
@@ -137,6 +175,17 @@ async function handleUpdate(update: any) {
         msg += d.given ? `✅ ${d.label} (${time})\n` : `⬜ ${d.label} (${time})\n`;
       }
       await tgSend(chatId, msg);
+      return;
+    }
+
+    if (text === '/mute') {
+      const user = await getUser(chatId);
+      if (!user) {
+        await tgSend(chatId, '❌ את/ה לא רשום/ה. שלח /start קודם.');
+        return;
+      }
+      const { doses } = await getDoseStatus();
+      await tgSend(chatId, '🔕 <b>השתקת תזכורות</b>\n\nלחץ על מנה כדי להשתיק או לבטל השתקה:', muteKeyboard(doses, user.muted_doses ?? []));
       return;
     }
 
@@ -196,7 +245,7 @@ async function handleUpdate(update: any) {
         return;
       }
       await registerUser(chatId, name);
-      await tgSend(chatId, `✅ שלום ${name}! נרשמת בהצלחה.\n\n📌 <b>פקודות:</b>\n/give - נתתי כדור\n/status - סטטוס היום`);
+      await tgSend(chatId, `✅ שלום ${name}! נרשמת בהצלחה.\n\n${COMMANDS_HELP}`);
       return;
     }
   }
@@ -210,6 +259,41 @@ async function handleUpdate(update: any) {
     if (data === 'cancel_give') {
       await tgAnswer(cb.id, 'בוטל');
       await tgEditMessage(chatId, messageId, '❌ בוטל.');
+      return;
+    }
+
+    if (data.startsWith('mute_') || data === 'unmute_all') {
+      const user = await getUser(chatId);
+      if (!user) {
+        await tgAnswer(cb.id, 'את/ה לא רשום/ה. שלח /start');
+        return;
+      }
+
+      const { doses } = await getDoseStatus();
+      let muted: number[] = user.muted_doses ?? [];
+
+      if (data === 'mute_done') {
+        await tgAnswer(cb.id, '✅');
+        await tgEditMessage(chatId, messageId, muteSummary(doses, muted));
+        return;
+      }
+
+      if (data === 'mute_all') {
+        muted = doses.map(d => d.index);
+      } else if (data === 'unmute_all') {
+        muted = [];
+      } else {
+        const idx = parseInt(data.split('_')[1]);
+        if (!doses[idx]) {
+          await tgAnswer(cb.id, '❌ שגיאה!');
+          return;
+        }
+        muted = muted.includes(idx) ? muted.filter(i => i !== idx) : [...muted, idx].sort((a, b) => a - b);
+      }
+
+      await setMutedDoses(chatId, muted);
+      await tgAnswer(cb.id, '✅ עודכן');
+      await tgEditKeyboard(chatId, messageId, muteKeyboard(doses, muted));
       return;
     }
 
@@ -252,7 +336,11 @@ async function handleUpdate(update: any) {
 // Let the user know the server is having trouble, so a /give or button tap
 // doesn't just silently do nothing. The pill was NOT recorded in this case.
 async function notifyBusy(update: any) {
-  const busy = '⚠️ השרת לא זמין כרגע, הכדור לא נרשם. נסו שוב בעוד דקה.';
+  const isMute = update.message?.text?.trim() === '/mute' ||
+    /^(un)?mute_/.test(update.callback_query?.data ?? '');
+  const busy = isMute
+    ? '⚠️ השרת לא זמין כרגע, ההשתקה לא נשמרה. נסו שוב בעוד דקה.'
+    : '⚠️ השרת לא זמין כרגע, הכדור לא נרשם. נסו שוב בעוד דקה.';
   try {
     if (update.callback_query) {
       await tgAnswer(update.callback_query.id, busy);
@@ -292,7 +380,8 @@ async function sendReminders() {
     body: JSON.stringify({ dose_index: currentDoseIndex, dose_date: today, reminder_number: 1 }),
   });
 
-  const users = await getAllUsers();
+  const allUsers = await getAllUsers();
+  const users = allUsers.filter((u: any) => !(u.muted_doses ?? []).includes(currentDoseIndex));
   const time = fmtTime(dose.hour, dose.minute);
 
   for (const user of users) {
